@@ -205,6 +205,7 @@ public class Sensor {
 	public boolean comfirmData(String raw){
 		String dev_Type = "21";
 		String rcData = "GA";
+		
 		SendDataToSC(dev_Type,rcData, raw);
 		return true;
 		
@@ -314,7 +315,14 @@ public class Sensor {
 	}
 	
 
-	
+	  public static boolean isStringDouble(String s) {
+	    try {
+	        Double.parseDouble(s);
+	        return true;
+	    } catch (NumberFormatException e) {
+	        return false;
+	    }
+	  }
 	/**
 	 * Pre		: Get 'd1' type command from sensor
 	 * Func		: Make json format according to received data
@@ -325,6 +333,14 @@ public class Sensor {
 	public void SendDataToSC(String Dev_Type, String rcData, String raw) {
 		// Convert HashMapData to Json
 		raw = raw.replace("\n", "");
+		String tmp = raw;
+
+		if(!isStringDouble(tmp))
+			return ;
+		
+		double temp = Double.parseDouble(tmp) / 10;
+		tmp = Double.toString(temp);
+		
 		StringBuilder data = new StringBuilder();
 		data.append("{\"type\":\"sensordata\"");
 		//data.append("{\"type\":\"threshold\"");
@@ -336,12 +352,12 @@ public class Sensor {
 		
 		// until there is no new SensorData info
 
-			String Key = rcData;
-			data.append("{\"");
-			data.append(Key);
-			data.append("\":\"");
-			data.append(raw);
-			data.append("\"}");
+		String Key = rcData;
+		data.append("{\"");
+		data.append(Key);
+		data.append("\":\"");
+		data.append(tmp);
+		data.append("\"}");
 
 		
 		data.append("], \"origin\" : \"");

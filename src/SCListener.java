@@ -226,38 +226,38 @@ public class SCListener implements Runnable {
 					continue;
 				}
 				
-				// Higher priority than 'd1' Message 
-				// There is 'a2' or 'b2' message in the message queue
-				// After process all messages in queue, process 'd1' message
-				if(rabbitMq.getMsgQueSize()>0){
-					System.out.println("& QueSize : " + rabbitMq.getMsgQueSize());
-					String sensorData;
-					while(rabbitMq.getMsgQueSize()>0){
-						sensorData = rabbitMq.getMsgQueData();
-						System.out.println("& QueMsg : " + sensorData);
-						try {
-							msgParser.SetMsg(reqMsgFromSC);
-						} catch (ParseException e) {
-							e.printStackTrace();
-						}	
-						String user_id = msgParser.getUserId();
-						StringBuilder topic = new StringBuilder();
-						topic.append(TOPIC_RequestThr);
-						topic.append("/");
-						topic.append(user_id);
-						
-						// Fill the value of 'data' key as getting sensor data
-						String publish_json = msgParser.setData(sensorData);
-						System.out.println("# Json msg : " + publish_json);
-						
-						// Publish whole threshold data
-						if(MQTT.getInstance().GetKeyValue() != null)
-							MQTT.getInstance().publishMsgToUser(publish_json, topic.toString());
-					}
-				}
-				else if(msgFromSensor.substring(20,22).equals("d1")){
-					publishToSC(msgFromSensor);
-				}
+//				// Higher priority than 'd1' Message 
+//				// There is 'a2' or 'b2' message in the message queue
+//				// After process all messages in queue, process 'd1' message
+//				if(rabbitMq.getMsgQueSize()>0){
+//					System.out.println("& QueSize : " + rabbitMq.getMsgQueSize());
+//					String sensorData;
+//					while(rabbitMq.getMsgQueSize()>0){
+//						sensorData = rabbitMq.getMsgQueData();
+//						System.out.println("& QueMsg : " + sensorData);
+//						try {
+//							msgParser.SetMsg(reqMsgFromSC);
+//						} catch (ParseException e) {
+//							e.printStackTrace();
+//						}	
+//						String user_id = msgParser.getUserId();
+//						StringBuilder topic = new StringBuilder();
+//						topic.append(TOPIC_RequestThr);
+//						topic.append("/");
+//						topic.append(user_id);
+//						
+//						// Fill the value of 'data' key as getting sensor data
+//						String publish_json = msgParser.setData(sensorData);
+//						System.out.println("# Json msg : " + publish_json);
+//						
+//						// Publish whole threshold data
+//						if(MQTT.getInstance().GetKeyValue() != null)
+//							MQTT.getInstance().publishMsgToUser(publish_json, topic.toString());
+//					}
+//				}
+//				else if(msgFromSensor.substring(20,22).equals("d1")){
+//					publishToSC(msgFromSensor);
+//				}
 				
 				if(testInt ==5){
 				try {
@@ -676,7 +676,22 @@ public class SCListener implements Runnable {
 		sb.append(parser.getAct_value());
 		System.out.println("Parse Msg : " + sb.toString());
 		ActuatorList tmp=null;
-		tmp.sendMsg(parser.getAct_value());
+		
+		String act_id = parser.getAct_id();
+		String action = parser.getAct_value();
+		//tmp.sendMsg(parser.getAct_value());
+		// If Actuator id is window
+		if(act_id.equals("window")){
+			if(action.equals("on"))
+				tmp.sendMsg("open");
+			else if(action.equals("off"))
+				tmp.sendMsg("close");
+		}
+		// If Actuator id is fan
+		else if(act_id.equals("fan")){
+			tmp.sendMsg(parser.getAct_value());
+		}
+		
 		//ActuatorList.sendMsg(parser.getAct_value());
 		//ActuatorList.getInstance().sendActMsg(sb.toString(), Act_ip);
 		
